@@ -7,7 +7,7 @@ from socket import gethostname
 import torch
 import torch.distributed as dist
 
-import mmcv
+import cvtools
 
 
 def get_host_info():
@@ -64,7 +64,7 @@ def obj_from_dict(info, parent=None, default_args=None):
     assert isinstance(default_args, dict) or default_args is None
     args = info.copy()
     obj_type = args.pop('type')
-    if mmcv.is_str(obj_type):
+    if cvtools.is_str(obj_type):
         if parent is not None:
             obj_type = getattr(parent, obj_type)
         else:

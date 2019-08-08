@@ -9,7 +9,7 @@ def scatter(inputs, target_gpus, dim=0):
     """Scatter inputs to target gpus.
 
     The only difference from original :func:`scatter` is to add support for
-    :type:`~mmcv.parallel.DataContainer`.
+    :type:`~cvtools.parallel.DataContainer`.
     """
 
     def scatter_map(obj):

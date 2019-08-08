@@ -11,7 +11,7 @@ import torchvision
 from terminaltables import AsciiTable
 from torch.utils import model_zoo
 
-import mmcv
+import cvtools
 from .utils import get_dist_info
 
 open_mmlab_model_urls = {
@@ -221,9 +221,9 @@ def save_checkpoint(model, filename, optimizer=None, meta=None):
     elif not isinstance(meta, dict):
         raise TypeError('meta must be a dict or None, but got {}'.format(
             type(meta)))
-    meta.update(mmcv_version=mmcv.__version__, time=time.asctime())
+    meta.update(cvtools_version=cvtools.__version__, time=time.asctime())
 
-    mmcv.mkdir_or_exist(osp.dirname(filename))
+    cvtools.mkdir_or_exist(osp.dirname(filename))
     if hasattr(model, 'module'):
         model = model.module
 

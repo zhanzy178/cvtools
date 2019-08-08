@@ -63,11 +63,11 @@ class Config(object):
         [0, 1]
         >>> cfg = Config.fromfile('tests/data/config/a.py')
         >>> cfg.filename
-        "/home/kchen/projects/mmcv/tests/data/config/a.py"
+        "/home/kchen/projects/cvtools/tests/data/config/a.py"
         >>> cfg.item4
         'test'
         >>> cfg
-        "Config [path: /home/kchen/projects/mmcv/tests/data/config/a.py]: "
+        "Config [path: /home/kchen/projects/cvtools/tests/data/config/a.py]: "
         "{'item1': [1, 2], 'item2': {'a': 0}, 'item3': True, 'item4': 'test'}"
 
     """
@@ -90,8 +90,8 @@ class Config(object):
                 if not name.startswith('__')
             }
         elif filename.endswith(('.yml', '.yaml', '.json')):
-            import mmcv
-            cfg_dict = mmcv.load(filename)
+            import cvtools
+            cfg_dict = cvtools.load(filename)
         else:
             raise IOError('Only py/yml/yaml/json type are supported now!')
         return Config(cfg_dict, filename=filename)

@@ -4,7 +4,7 @@ import time
 
 import torch
 
-import mmcv
+import cvtools
 from . import hooks
 from .checkpoint import load_checkpoint, save_checkpoint
 from .hooks import (CheckpointHook, Hook, IterTimerHook, LrUpdaterHook,
@@ -47,9 +47,9 @@ class Runner(object):
         self.batch_processor = batch_processor
 
         # create work_dir
-        if mmcv.is_str(work_dir):
+        if cvtools.is_str(work_dir):
             self.work_dir = osp.abspath(work_dir)
-            mmcv.mkdir_or_exist(self.work_dir)
+            cvtools.mkdir_or_exist(self.work_dir)
         elif work_dir is None:
             self.work_dir = None
         else:
@@ -250,7 +250,7 @@ class Runner(object):
         optimizer = self.optimizer if save_optimizer else None
         save_checkpoint(self.model, filepath, optimizer=optimizer, meta=meta)
         # use relative symlink
-        mmcv.symlink(filename, linkpath)
+        cvtools.symlink(filename, linkpath)
 
     def train(self, data_loader, **kwargs):
         self.model.train()
@@ -328,7 +328,7 @@ class Runner(object):
             max_epochs (int): Total training epochs.
         """
         assert isinstance(data_loaders, list)
-        assert mmcv.is_list_of(workflow, tuple)
+        assert cvtools.is_list_of(workflow, tuple)
         assert len(data_loaders) == len(workflow)
 
         self._max_epochs = max_epochs
