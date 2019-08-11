@@ -6,7 +6,7 @@ def tpfp(det_scores, det_labels, gt_bboxes, gt_labels, iou_mat, iou_thr=0.5):
     tp = np.zeros(det_scores.shape[0])
     fp = np.zeros(det_scores.shape[0])
 
-    for iou, di in enumerate(iou_mat):
+    for di, iou in enumerate(iou_mat):
         max_ind = np.argmax(iou)
 
         if iou[max_ind] < iou_thr:

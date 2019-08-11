@@ -29,10 +29,12 @@ class LogBuffer(object):
             self.val_history[key].append(var)
             self.n_history[key].append(count)
 
-    def average(self, n=0):
+    def average(self, n=0, keys=None):
         """Average latest n values or all values"""
         assert n >= 0
         for key in self.val_history:
+            if keys is not None:
+                if key not in keys: continue
             values = np.array(self.val_history[key][-n:])
             nums = np.array(self.n_history[key][-n:])
             avg = np.sum(values * nums) / np.sum(nums)

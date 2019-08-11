@@ -152,12 +152,17 @@ class Runner(object):
                           filename=None,
                           mode='w',
                           level=logging.INFO):
-        # TODO: move this method out of runner
         file_handler = logging.FileHandler(filename, mode)
         file_handler.setFormatter(
             logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(
+            logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        stream_handler.setLevel(level)
+        logger.addHandler(stream_handler)
         return logger
 
     def init_logger(self, log_dir=None, level=logging.INFO):
@@ -171,9 +176,10 @@ class Runner(object):
         Returns:
             :obj:`~logging.Logger`: Python logger.
         """
-        logging.basicConfig(
-            format='%(asctime)s - %(levelname)s - %(message)s', level=level)
+        # logging.basicConfig(
+        #     format='%(asctime)s - %(levelname)s - %(message)s', level=level)
         logger = logging.getLogger(__name__)
+        logging.root.handlers.clear()
         logger.setLevel(level)
         if log_dir and self.rank == 0:
             filename = '{}.log'.format(self.timestamp)
@@ -279,6 +285,7 @@ class Runner(object):
         self.model.eval()
         self.mode = 'val'
         self.data_loader = data_loader
+        self._max_iters = len(data_loader)
         self.call_hook('before_val_epoch')
 
         for i, data_batch in enumerate(data_loader):

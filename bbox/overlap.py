@@ -32,8 +32,8 @@ def bbox_overlap(bbox1, bbox2, xywh=True):
 
         return iou
 
-    elif isinstance(bbox1, np.array):
-        if bbox1.shape(0) == 0 or bbox2.shape(0) == 0:
+    elif isinstance(bbox1, np.ndarray):
+        if bbox1.shape[0] == 0 or bbox2.shape[0] == 0:
             return None
 
         # convert format to ltrb
@@ -48,8 +48,8 @@ def bbox_overlap(bbox1, bbox2, xywh=True):
             area1 = (bbox1[..., 2]-bbox1[..., 0])*(bbox1[..., 3]-bbox1[..., 1])
             area2 = (bbox2[..., 2]-bbox2[..., 0])*(bbox2[..., 3]-bbox2[..., 1])
 
-        w = np.min(bbox_corner1[..., None, 2], bbox_corner2[..., 2])-np.max(bbox_corner1[..., None, 0], bbox_corner2[..., 0])
-        h = np.min(bbox_corner1[..., None, 3], bbox_corner2[..., 3])-np.max(bbox_corner1[..., None, 1], bbox_corner2[..., 1])
+        w = np.minimum(bbox_corner1[..., None, 2], bbox_corner2[..., 2])-np.maximum(bbox_corner1[..., None, 0], bbox_corner2[..., 0])
+        h = np.minimum(bbox_corner1[..., None, 3], bbox_corner2[..., 3])-np.maximum(bbox_corner1[..., None, 1], bbox_corner2[..., 1])
         area_overlap = w.clip(0)*h.clip(0)
 
         iou = area_overlap / (area1[..., None] + area2 - area_overlap)
