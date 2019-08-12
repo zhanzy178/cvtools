@@ -75,7 +75,7 @@ class EvalLoggerHook(Hook):
     def text_log(self, runner):
         log_dict = OrderedDict()
         log_dict['mode'] = 'val'
-        log_dict['epoch'] = runner.epoch + 1
+        log_dict['epoch'] = runner.epoch
         log_dict['iter'] = runner.inner_iter + 1
         log_dict['time'] = runner.log_buffer.output['time']
         log_dict['data_time'] = runner.log_buffer.output['data_time']

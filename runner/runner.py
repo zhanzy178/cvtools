@@ -281,6 +281,7 @@ class Runner(object):
         self.call_hook('after_train_epoch')
         self._epoch += 1
 
+    @profile
     def val(self, data_loader, **kwargs):
         self.model.eval()
         self.mode = 'val'
