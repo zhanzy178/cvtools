@@ -38,7 +38,8 @@ class EvalLoggerHook(Hook):
         det_labels = runner.outputs['det_labels']
         gt_bboxes = runner.outputs['gt_bboxes']
         gt_labels = runner.outputs['gt_labels']
-
+        if runner.epoch > 100:
+            import pdb; pdb.set_trace()
         for i in range(len(det_bboxes)):
             iou_mat = bbox_overlap(det_bboxes[i], gt_bboxes[i], xywh=True)
             if iou_mat is None: continue
