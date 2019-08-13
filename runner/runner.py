@@ -258,6 +258,8 @@ class Runner(object):
         # use relative symlink
         cvtools.symlink(filename, linkpath)
 
+        self.logger.info('save checkpoint to "%s"...'%filepath)
+
     def train(self, data_loader, **kwargs):
         self.model.train()
         self.mode = 'train'
