@@ -71,8 +71,8 @@ def voc_eval(det_scores, det_labels, tp, fp, num_gt):
 
         csum_tp = np.cumsum(class_tp, dtype=np.float32)
         csum_fp = np.cumsum(class_fp, dtype=np.float32)
-        recall = csum_tp / num_gt[c-1]
-        precision = csum_tp / (csum_tp + csum_fp)
+        recall = csum_tp / num_gt[int(c)]
+        precision = csum_tp / np.maximum((csum_tp + csum_fp), np.finfo(np.float64).eps)
 
         class_AP.append(voc_ap(recall, precision, True))
 
