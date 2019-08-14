@@ -1,11 +1,11 @@
 from ..hook import Hook
 from cvtools.evaluate import tpfp, voc_eval
-from cvtools.bbox import bbox_overlap
 from collections import OrderedDict
 import numpy as np
 import torch
 import datetime
 import torch.distributed as dist
+from cvtools.evaluate import VOC_CLASS
 
 class EvalLoggerHook(Hook):
     def __init__(self, interval=100):
@@ -42,7 +42,7 @@ class EvalLoggerHook(Hook):
         for i in range(len(det_bboxes)):
             tp, fp, num_gt = tpfp(det_bboxes[i], det_labels[i], gt_bboxes[i], gt_labels[i], difficults[i], 22)
             runner.log_buffer.update(dict(
-                scores=det_bboxes[i][:, -1] if det_bboxes[i].shape[0] else det_bboxes[i],
+                scores=det_bboxes[i][:, -1] if det_bboxes[i].shape[0] else np.array([]),
                 labels=det_labels[i],
                 tp=tp,
                 fp=fp,
@@ -98,14 +98,19 @@ class VOCEvalLoggerHook(EvalLoggerHook):
         tp = runner.log_buffer.val_history['tp']
         fp = runner.log_buffer.val_history['fp']
         num_gt = np.sum(runner.log_buffer.val_history['num_gt'], axis=0)
+        filename = [len(tp[di]) * f for di, f in enumerate(runner.log_buffer.val_history['filename'])]
 
-        mAP = voc_eval(scores, labels, tp, fp, num_gt)
-        runner.log_buffer.update(dict(mAP=mAP))
+        class_AP = voc_eval(filename, scores, labels, tp, fp, num_gt)
+        runner.log_buffer.update({c+' AP':class_AP[i] for i, c in enumerate(VOC_CLASS)})
+        runner.log_buffer.update(dict(mAP=np.mean(class_AP)))
 
     def after_val_epoch_log(self, runner):
         runner.log_buffer.average(keys=['mAP'])
         log_items = []
-        log_items.append('{}: {:.4f}'.format('mAP', runner.log_buffer.output['mAP']))
-        log_str = ', '.join(log_items)
+        log_str = ''
+        for key in runner.log_buffer.output.keys():
+            if key[-2:] != 'AP': continue
+            log_items.append('{}: {:.4f}'.format(key, runner.log_buffer.output[key]))
+            log_str += ', '.join(log_items)
 
         runner.logger.info(log_str)

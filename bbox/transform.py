@@ -10,8 +10,9 @@ def xywh2xyxy(bbox_t):
     else:
         raise NotImplementedError
 
-    bbox[..., [0, 1]] -= bbox[..., [2, 3]] / 2
-    bbox[..., [2, 3]] += bbox[..., [0, 1]]
+    bbox[..., [0, 1]] = bbox_t[..., [0, 1]] - bbox_t[..., [2, 3]] * 0.5 + 0.5
+    bbox[..., [2, 3]] = bbox_t[..., [0, 1]] + bbox_t[..., [2, 3]] * 0.5 - 0.5
+
     return bbox
 
 
@@ -24,6 +25,6 @@ def xyxy2xywh(bbox_t):
     else:
         raise NotImplementedError
 
-    bbox[..., [2, 3]] = bbox[..., [2, 3]] - bbox[:, [0, 1]]
-    bbox[..., [0, 1]] += bbox[..., [2, 3]] / 2
+    bbox[..., [0, 1]] = (bbox_t[..., [0, 1]] + bbox_t[..., [2, 3]]) * 0.5
+    bbox[..., [2, 3]] = bbox_t[..., [2, 3]] - bbox_t[..., [0, 1]] + 1
     return bbox
