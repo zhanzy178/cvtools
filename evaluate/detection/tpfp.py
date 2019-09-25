@@ -2,7 +2,7 @@ import numpy as np
 from cvtools.bbox import bbox_overlap
 
 def tpfp(det_bboxes, det_labels, gt_bboxes, gt_labels, difficults, class_num, iou_thr=0.5):
-    num_gt = np.histogram(gt_labels, np.arange(0, class_num + 1))[0]
+    num_gt = np.histogram(gt_labels, np.arange(class_num + 2))[0]
     gt_matched = np.zeros(gt_bboxes.shape[0])
     tp = np.zeros(det_bboxes.shape[0])
     fp = np.zeros(det_bboxes.shape[0])
@@ -27,4 +27,6 @@ def tpfp(det_bboxes, det_labels, gt_bboxes, gt_labels, difficults, class_num, io
         else:
             fp[di] = 1
 
+    # compute gt class number filter out difficults
+    num_gt = np.histogram(gt_labels[difficults==0], np.arange(class_num + 2))[0]
     return tp, fp, num_gt

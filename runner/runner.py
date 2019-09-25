@@ -68,6 +68,7 @@ class Runner(object):
         else:
             self.logger = logger
         self.log_buffer = LogBuffer()
+        self.val_buffer = dict()
 
         self.mode = None
         self._hooks = []
@@ -139,8 +140,29 @@ class Runner(object):
             <class 'torch.optim.sgd.SGD'>
         """
         if isinstance(optimizer, dict):
-            optimizer = obj_from_dict(optimizer, torch.optim,
-                                      dict(params=self.model.parameters()))
+            params = []
+            if 'mult' in optimizer:
+                # follow faster caffe
+                mult = optimizer.pop('mult')
+                for key, value in dict(self.model.named_parameters()).items():
+                    if not value.requires_grad: continue
+
+                    mult_flag = False
+                    for mult_k, mult_t in mult.items():
+                        if mult_k in key:
+                            params.append(dict(params=[value], lr=optimizer.lr*mult_t, weight_decay=0))
+                            mult_flag = True
+                            break
+                    if not mult_flag:
+                        params.append(dict(params=[value], lr=optimizer.lr, weight_decay=optimizer.weight_decay))
+
+                optimizer.pop('weight_decay')
+                optimizer.pop('lr')
+                optimizer = obj_from_dict(optimizer, torch.optim,
+                                        dict(params=params))
+            else:
+                optimizer = obj_from_dict(optimizer, torch.optim,
+                                        dict(params=[p for p in self.model.parameters() if p.requires_grad]))
         elif not isinstance(optimizer, torch.optim.Optimizer):
             raise TypeError(
                 'optimizer must be either an Optimizer object or a dict, '

@@ -20,7 +20,7 @@ def nms_wrapper(bboxes, scores, ignore=None, nms_iou_thr = 0.7, num_before=-1, n
             score_list = score_list[sorted_ind[:num_before]]
 
             left_ind = nms(xywh2xyxy(bbox_list), score_list, nms_iou_thr)
-            left_ind = left_ind.sort()[0][:num_after]
+            left_ind = left_ind[:num_after]
 
             nms_bboxes.append(bbox_list[left_ind])
             nms_scores.append(score_list[left_ind])

@@ -5,7 +5,8 @@ from .hook import Hook
 
 class OptimizerHook(Hook):
 
-    def __init__(self, grad_clip=None):
+    def __init__(self, interval=1, grad_clip=None):
+        self.interval=interval
         self.grad_clip = grad_clip
 
     def clip_grads(self, params):
@@ -13,8 +14,10 @@ class OptimizerHook(Hook):
             filter(lambda p: p.requires_grad, params), **self.grad_clip)
 
     def after_train_iter(self, runner):
-        runner.optimizer.zero_grad()
         runner.outputs['loss'].backward()
-        if self.grad_clip is not None:
-            self.clip_grads(runner.model.parameters())
-        runner.optimizer.step()
+
+        if self.every_n_inner_iters(runner, self.interval):
+            if self.grad_clip is not None:
+                self.clip_grads(runner.model.parameters())
+            runner.optimizer.step()
+            runner.optimizer.zero_grad()

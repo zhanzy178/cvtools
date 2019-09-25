@@ -26,11 +26,13 @@ class EvalLoggerHook(Hook):
         self.start_iter = 0
         self.time_sec_tot = 0
         runner.log_buffer.clear()
+        runner.val_buffer = dict()
 
     def after_val_epoch(self, runner):
         self.eval(runner)
         self.after_val_epoch_log(runner)
         runner.log_buffer.clear()
+        runner.val_buffer = dict()
 
     def after_val_iter(self, runner):
         # compute tp fp
@@ -40,14 +42,21 @@ class EvalLoggerHook(Hook):
         gt_labels = runner.outputs['gt_labels']
         difficults = runner.outputs['difficults']
         for i in range(len(det_bboxes)):
-            tp, fp, num_gt = tpfp(det_bboxes[i], det_labels[i], gt_bboxes[i], gt_labels[i], difficults[i], 22)
-            runner.log_buffer.update(dict(
+            tp, fp, num_gt = tpfp(det_bboxes[i], det_labels[i], gt_bboxes[i], gt_labels[i], difficults[i], 20)
+            val_buffer = dict(
                 scores=det_bboxes[i][:, -1] if det_bboxes[i].shape[0] else np.array([]),
                 labels=det_labels[i],
                 tp=tp,
                 fp=fp,
                 num_gt=num_gt
-            ))
+            )
+
+            # update to val_buffer
+            for k, v in val_buffer.items():
+                if k not in runner.val_buffer:
+                    runner.val_buffer[k] = []
+                runner.val_buffer[k].append(v)
+
 
         # log with interval
         if self.every_n_inner_iters(runner, self.interval):
@@ -93,24 +102,22 @@ class EvalLoggerHook(Hook):
 
 class VOCEvalLoggerHook(EvalLoggerHook):
     def eval(self, runner):
-        scores = runner.log_buffer.val_history['scores']
-        labels = runner.log_buffer.val_history['labels']
-        tp = runner.log_buffer.val_history['tp']
-        fp = runner.log_buffer.val_history['fp']
-        num_gt = np.sum(runner.log_buffer.val_history['num_gt'], axis=0)
-        filename = [len(tp[di]) * f for di, f in enumerate(runner.log_buffer.val_history['filename'])]
+        scores = runner.val_buffer['scores']
+        labels = runner.val_buffer['labels']
+        tp = runner.val_buffer['tp']
+        fp = runner.val_buffer['fp']
+        num_gt = np.sum(runner.val_buffer['num_gt'], axis=0)
 
-        class_AP = voc_eval(filename, scores, labels, tp, fp, num_gt)
+        class_AP = voc_eval(scores, labels, tp, fp, num_gt)
         runner.log_buffer.update({c+' AP':class_AP[i] for i, c in enumerate(VOC_CLASS)})
         runner.log_buffer.update(dict(mAP=np.mean(class_AP)))
 
     def after_val_epoch_log(self, runner):
-        runner.log_buffer.average(keys=['mAP'])
+        runner.log_buffer.average()
         log_items = []
-        log_str = ''
         for key in runner.log_buffer.output.keys():
             if key[-2:] != 'AP': continue
-            log_items.append('{}: {:.4f}'.format(key, runner.log_buffer.output[key]))
-            log_str += ', '.join(log_items)
+            log_items.append('\n\t\t{}: {:.4f}'.format(key, runner.log_buffer.output[key]))
+        log_str = ', '.join(log_items)
 
         runner.logger.info(log_str)

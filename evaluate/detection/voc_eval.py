@@ -1,4 +1,5 @@
 import numpy as np
+from . import VOC_CLASS
 
 def voc_ap(rec, prec, use_07_metric=False):
     """ ap = voc_ap(rec, prec, [use_07_metric])
@@ -33,7 +34,7 @@ def voc_ap(rec, prec, use_07_metric=False):
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-def voc_eval(filename, det_scores, det_labels, tp, fp, num_gt, use_07_metric=False):
+def voc_eval(det_scores, det_labels, tp, fp, num_gt, use_07_metric=False):
     """ VOC mAP evaluate function
     :param det_bboxes: IxNx5 size, every cell is [x1 y1 x2 y2 score] numpy array
     :type det_bboxes:
@@ -46,9 +47,6 @@ def voc_eval(filename, det_scores, det_labels, tp, fp, num_gt, use_07_metric=Fal
     :return:
     :rtype:
     """
-    filename_list = []
-    for f in filename:
-        filename_list += f
     if isinstance(det_scores, list):
         det_scores = np.concatenate(det_scores, axis=0)
     if isinstance(det_labels, list):
@@ -65,30 +63,19 @@ def voc_eval(filename, det_scores, det_labels, tp, fp, num_gt, use_07_metric=Fal
     fp = fp[sorted_ind]
     det_labels = det_labels[sorted_ind]
     det_scores = det_scores[sorted_ind]
-    filename_list = [filename_list[i] for i in sorted_ind]
 
-    class_result = {}
-    for c in class_labels:
-        ind = (det_labels == c)
+    for c in range(len(VOC_CLASS)):
+        ind = (det_labels == (c+1))
         class_tp = tp[ind]
         class_fp = fp[ind]
 
-        class_result[c] = dict(
-            class_tp=class_tp,
-            class_fp=class_fp,
-            det_scores=det_scores[ind],
-            filename_list=[filename_list[i] for i in np.where(det_labels == c)[0]]
-        )
 
         csum_tp = np.cumsum(class_tp, dtype=np.float32)
         csum_fp = np.cumsum(class_fp, dtype=np.float32)
-        recall = csum_tp / num_gt[int(c)]
+        recall = csum_tp / num_gt[int(c+1)]
         precision = csum_tp / np.maximum((csum_tp + csum_fp), np.finfo(np.float64).eps)
 
         class_AP.append(voc_ap(recall, precision, use_07_metric))
-
-    import torch
-    torch.save(class_result, 'temp0.pth')
 
     return class_AP
 
